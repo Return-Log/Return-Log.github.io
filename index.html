@@ -186,7 +186,7 @@
             
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                if (file.name.match(/\.md$/)) {
+                if (file.name.match(/\.rtf$/)) {
                     var listItem = document.createElement('li');
                     var link = document.createElement('a');
                     link.href = '#';
@@ -196,14 +196,14 @@
                             return false;
                         };
                     })(file);
-                    link.innerHTML = file.name.replace(/\.md$/, '');
+                    link.innerHTML = file.name.replace(/\.rtf$/, '');
                     listItem.appendChild(link);
                     listElement.appendChild(listItem);
                 }
             }
             
             if (listElement.childNodes.length == 0) {
-                listElement.innerHTML = '<li>No markdown files found</li>';
+                listElement.innerHTML = '<li>No RTF files found</li>';
             }
         }
         
@@ -230,44 +230,29 @@
         function displayArticle(title, content) {
             var mainArea = document.getElementById('mainArea');
             mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
-                                '<h1>' + title.replace(/\.md$/, '') + '</h1>' +
+                                '<h1>' + title.replace(/\.rtf$/, '') + '</h1>' +
                                 '<div id="articleContent"></div>';
             
-            // 简单的Markdown到HTML转换
-            var htmlContent = convertMarkdownToHtml(content);
-            document.getElementById('articleContent').innerHTML = htmlContent;
+            // 清理RTF内容，移除RTF控制字符
+            var cleanContent = cleanRtfContent(content);
+            document.getElementById('articleContent').innerHTML = cleanContent;
         }
         
-        // 简单的Markdown到HTML转换函数
-        function convertMarkdownToHtml(markdown) {
-            // 处理标题
-            markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-            markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-            markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        // 清理RTF内容的简单函数
+        function cleanRtfContent(rtfContent) {
+            // 移除RTF头部信息
+            var content = rtfContent.replace(/\{\\rtf[^}]*\}/, '');
             
-            // 处理粗体
-            markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>');
+            // 移除控制字符，保留基本文本
+            content = content.replace(/\\[a-z]+[0-9]* ?/gi, '');
             
-            // 处理斜体
-            markdown = markdown.replace(/\*(.*)\*/gim, '<em>$1</em>');
+            // 移除花括号
+            content = content.replace(/[{}]/g, '');
             
-            // 处理代码块
-            markdown = markdown.replace(/`(.*?)`/gim, '<code>$1</code>');
+            // 处理换行
+            content = content.replace(/\\par/g, '\n');
             
-            // 处理代码段
-            markdown = markdown.replace(/([\s\S]*?)/gim, '<pre>$1</pre>');
-
-            // 处理链接
-            markdown = markdown.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" style="color:#0f0;">$1</a>');
-            
-            // 处理段落
-            markdown = markdown.replace(/\n\n/gim, '</p><p>');
-            markdown = '<p>' + markdown + '</p>';
-            
-            // 处理行内换行
-            markdown = markdown.replace(/\n/gim, '<br>');
-            
-            return markdown;
+            return content;
         }
         
         // 显示主页
