@@ -127,14 +127,6 @@
             border: 1px solid #0f0;
             margin: 10px 0;
         }
-        
-        .article-meta {
-            font-size: 0.9em;
-            color: #0a0;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #0f0;
-            padding-bottom: 10px;
-        }
     </style>
 </head>
 <body>
@@ -212,6 +204,12 @@
             var totalFiles = validFiles.length;
             var processedFiles = 0;
             
+            // 如果没有有效文件
+            if (totalFiles === 0) {
+                document.getElementById('articleList').innerHTML = '<li>No Markdown/Text files found</li>';
+                return;
+            }
+            
             // 逐个获取文件日期
             for (var i = 0; i < validFiles.length; i++) {
                 getFileInfo(validFiles[i], function() {
@@ -233,12 +231,17 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4) {
                     if (xhr.status == 200) {
-                        var commits = JSON.parse(xhr.responseText);
-                        if (commits.length > 0) {
-                            fileDates[file.name] = commits[0].commit.committer.date;
+                        try {
+                            var commits = JSON.parse(xhr.responseText);
+                            if (commits.length > 0) {
+                                fileDates[file.name] = commits[0].commit.committer.date;
+                            }
+                        } catch (e) {
+                            // 解析错误时忽略
                         }
                     }
-                    callback();
+                    // 总是调用回调，即使出错也要继续
+                    if (callback) callback();
                 }
             };
             xhr.send();
@@ -260,6 +263,11 @@
             for (var i = 0; i < sortedFiles.length; i++) {
                 var file = sortedFiles[i];
                 addFileToList(file);
+            }
+            
+            // 如果没有文件，显示提示
+            if (sortedFiles.length === 0) {
+                listElement.innerHTML = '<li>No Markdown/Text files found</li>';
             }
         }
         
@@ -304,36 +312,21 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4) {
                     if (xhr.status == 200) {
-                        displayArticleWithDate(file, xhr.responseText);
+                        showArticleContent(file, xhr.responseText);
                     } else {
-                        mainArea.innerHTML = '<p>Error loading article content</p>';
+                        mainArea.innerHTML = '<p>Error loading article content</p>' +
+                                           '<p>Status: ' + xhr.status + '</p>';
                     }
                 }
             };
             xhr.send();
         }
         
-        // 显示带日期的文章内容
-        function displayArticleWithDate(file, content) {
-            var dateInfo = '';
-            var commitDate = fileDates[file.name];
-            if (commitDate) {
-                var dateObj = new Date(commitDate);
-                var dateString = dateObj.getFullYear() + '-' + 
-                                ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
-                                ('0' + dateObj.getDate()).slice(-2);
-                dateInfo = '<div class="article-meta">Last updated: ' + dateString + '</div>';
-            }
-            
-            showArticleContent(file, content, dateInfo);
-        }
-        
         // 显示文章内容
-        function showArticleContent(file, content, dateInfo) {
+        function showArticleContent(file, content) {
             var mainArea = document.getElementById('mainArea');
             mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
                                 '<h1>' + file.name.replace(/\.md$|\.txt$/, '') + '</h1>' +
-                                dateInfo +
                                 '<div id="articleContent"></div>';
             
             // 解析内容中的链接和图片
