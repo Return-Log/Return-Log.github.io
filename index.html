@@ -102,6 +102,17 @@
             font-family: 'Courier New', monospace;
             line-height: 1.6;
         }
+        
+        .auto-link {
+            color: #0f0;
+            text-decoration: underline;
+        }
+        
+        .auto-image {
+            max-width: 100%;
+            border: 1px solid #0f0;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -110,8 +121,7 @@
             <img src="avatar.png" alt="Avatar" class="avatar">
             <div class="profile-info">
                 <h2>Geek Profile</h2>
-                <p>Name: Return-Log</p>
-                <p>Title: Developer</p>
+                <p>Name: Log</p>
                 <p>Github: <a href="https://github.com/Return-Log" style="color:#0f0;">@Return-Log</a></p>
             </div>
             
@@ -129,8 +139,7 @@
         
         <div class="main-content">
             <div id="mainArea">
-                <h1>Welcome to Return-Log's Page</h1>
-                <p>This is a simple introduction page with a geeky style.</p>
+                <h1>Welcome to Log's Page</h1>
                 <p>Select an article from the left sidebar to read.</p>
             </div>
         </div>
@@ -220,15 +229,37 @@
                                 '<h1>' + title.replace(/\.md$|\.txt$/, '') + '</h1>' +
                                 '<div id="articleContent"></div>';
             
-            // 直接显示原始内容，不做Markdown转换
-            document.getElementById('articleContent').innerHTML = content;
+            // 解析内容中的链接和图片
+            var processedContent = parseContent(content);
+            document.getElementById('articleContent').innerHTML = processedContent;
+        }
+        
+        // 解析内容中的链接和图片
+        function parseContent(content) {
+            var result = content;
+            
+            // 解析URL链接 (http/https)
+            result = result.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" class="auto-link" target="_blank">$1</a>');
+            
+            // 解析图片链接并直接显示图片
+            result = result.replace(/(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|bmp|webp))/gi, 
+                '<img src="$1" class="auto-image" alt="Image" onerror="this.style.display=\'none\';">');
+            
+            // 处理相对路径图片 (假设在GitHub仓库中)
+            result = result.replace(/(!\[([^\]]*)\]\(([^)]+\.(?:jpg|jpeg|png|gif|bmp|webp))\))/gi,
+                '<img src="https://raw.githubusercontent.com/' + GITHUB_USERNAME + '/' + GITHUB_REPO + '/main/$3" class="auto-image" alt="$2">');
+            
+            // 处理Markdown图片语法
+            result = result.replace(/(!\[([^\]]*)\]\((https?:\/\/[^)]+\.(?:jpg|jpeg|png|gif|bmp|webp))\))/gi,
+                '<img src="$3" class="auto-image" alt="$2">');
+            
+            return result;
         }
         
         // 显示主页
         function showHomePage() {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<h1>Welcome to Return-Log\'s Geek Page</h1>' +
-                                '<p>This is a simple introduction page with a geeky style.</p>' +
+            mainArea.innerHTML = '<h1>Welcome to Log\'s Page</h1>' +
                                 '<p>Select an article from the left sidebar to read.</p>';
         }
         
