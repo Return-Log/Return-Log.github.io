@@ -1,0 +1,5 @@
+pyinstaller -w --icon=icon.ico --upx-dir=C:\Users\chnlm\OneDrive\文档\code\upx-4.2.4-win64 --name=EducationClock main.py
+
+
+d9db97a66bbe44b0ab7ab4d68869bcc6
+
