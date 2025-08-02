@@ -112,7 +112,6 @@
         }
         
         #articleContent {
-            white-space: pre-wrap;
             font-family: 'Courier New', monospace;
         }
     </style>
@@ -186,7 +185,7 @@
             
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
-                if (file.name.match(/\.rtf$/)) {
+                if (file.name.match(/\.html$/)) {
                     var listItem = document.createElement('li');
                     var link = document.createElement('a');
                     link.href = '#';
@@ -196,14 +195,14 @@
                             return false;
                         };
                     })(file);
-                    link.innerHTML = file.name.replace(/\.rtf$/, '');
+                    link.innerHTML = file.name.replace(/\.html$/, '');
                     listItem.appendChild(link);
                     listElement.appendChild(listItem);
                 }
             }
             
             if (listElement.childNodes.length == 0) {
-                listElement.innerHTML = '<li>No RTF files found</li>';
+                listElement.innerHTML = '<li>No HTML files found</li>';
             }
         }
         
@@ -229,30 +228,18 @@
         // 显示文章内容
         function displayArticle(title, content) {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
-                                '<h1>' + title.replace(/\.rtf$/, '') + '</h1>' +
-                                '<div id="articleContent"></div>';
+            mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>';
             
-            // 清理RTF内容，移除RTF控制字符
-            var cleanContent = cleanRtfContent(content);
-            document.getElementById('articleContent').innerHTML = cleanContent;
-        }
-        
-        // 清理RTF内容的简单函数
-        function cleanRtfContent(rtfContent) {
-            // 移除RTF头部信息
-            var content = rtfContent.replace(/\{\\rtf[^}]*\}/, '');
+            // 创建一个容器来显示HTML内容
+            var contentDiv = document.createElement('div');
+            contentDiv.id = 'articleContent';
             
-            // 移除控制字符，保留基本文本
-            content = content.replace(/\\[a-z]+[0-9]* ?/gi, '');
+            // 移除HTML文档的基本结构，只保留body内的内容
+            var bodyContent = content.replace(/[\s\S]*<body[^>]*>/i, '');
+            bodyContent = bodyContent.replace(/<\/body>[\s\S]*/i, '');
             
-            // 移除花括号
-            content = content.replace(/[{}]/g, '');
-            
-            // 处理换行
-            content = content.replace(/\\par/g, '\n');
-            
-            return content;
+            contentDiv.innerHTML = bodyContent;
+            mainArea.appendChild(contentDiv);
         }
         
         // 显示主页
