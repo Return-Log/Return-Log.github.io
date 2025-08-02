@@ -127,6 +127,10 @@
             border: 1px solid #0f0;
             margin: 10px 0;
         }
+        
+        .error-message {
+            color: #f00;
+        }
     </style>
 </head>
 <body>
@@ -167,8 +171,8 @@
         var GITHUB_REPO = "Return-Log.github.io";
         var TEXTS_PATH = "pages";
         
-        // 存储文件日期信息
-        var fileDates = {};
+        // 存储文件信息
+        var fileInfos = {};
         
         // 获取文章列表
         function fetchArticleList() {
@@ -179,95 +183,43 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4) {
                     if (xhr.status == 200) {
-                        var files = JSON.parse(xhr.responseText);
-                        processFilesAndGetDates(files);
+                        try {
+                            var files = JSON.parse(xhr.responseText);
+                            displayArticleList(files);
+                        } catch (e) {
+                            document.getElementById('articleList').innerHTML = '<li class="error-message">Error parsing file list</li>';
+                        }
                     } else {
-                        document.getElementById('articleList').innerHTML = '<li>Error loading articles</li>';
+                        document.getElementById('articleList').innerHTML = '<li class="error-message">Error loading articles: ' + xhr.status + '</li>';
                     }
                 }
             };
             xhr.send();
         }
         
-        // 处理文件并获取日期
-        function processFilesAndGetDates(files) {
+        // 显示文章列表（不显示日期）
+        function displayArticleList(files) {
+            var listElement = document.getElementById('articleList');
+            listElement.innerHTML = '';
+            
             var validFiles = files.filter(function(file) {
                 return file.name.match(/\.md$|\.txt$/);
             });
             
             if (validFiles.length === 0) {
-                document.getElementById('articleList').innerHTML = '<li>No Markdown/Text files found</li>';
+                listElement.innerHTML = '<li>No Markdown/Text files found</li>';
                 return;
             }
             
-            // 初始化计数器
-            var totalFiles = validFiles.length;
-            var processedFiles = 0;
-            
-            // 如果没有有效文件
-            if (totalFiles === 0) {
-                document.getElementById('articleList').innerHTML = '<li>No Markdown/Text files found</li>';
-                return;
-            }
-            
-            // 逐个获取文件日期
-            for (var i = 0; i < validFiles.length; i++) {
-                getFileInfo(validFiles[i], function() {
-                    processedFiles++;
-                    // 当所有文件都处理完后显示列表
-                    if (processedFiles === totalFiles) {
-                        displayArticleList(validFiles);
-                    }
-                });
-            }
-        }
-        
-        // 获取单个文件信息
-        function getFileInfo(file, callback) {
-            var commitsUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/commits?path=" + file.path;
-            
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", commitsUrl, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4) {
-                    if (xhr.status == 200) {
-                        try {
-                            var commits = JSON.parse(xhr.responseText);
-                            if (commits.length > 0) {
-                                fileDates[file.name] = commits[0].commit.committer.date;
-                            }
-                        } catch (e) {
-                            // 解析错误时忽略
-                        }
-                    }
-                    // 总是调用回调，即使出错也要继续
-                    if (callback) callback();
-                }
-            };
-            xhr.send();
-        }
-        
-        // 显示文章列表
-        function displayArticleList(files) {
-            var listElement = document.getElementById('articleList');
-            listElement.innerHTML = '';
-            
-            // 按日期排序文件（最新的在前）
-            var sortedFiles = files.slice().sort(function(a, b) {
-                var dateA = fileDates[a.name] || '';
-                var dateB = fileDates[b.name] || '';
-                return dateB.localeCompare(dateA);
+            // 按文件名排序
+            var sortedFiles = validFiles.slice().sort(function(a, b) {
+                return a.name.localeCompare(b.name);
             });
             
-            // 显示所有文件
+            // 显示所有文件（不显示日期）
             for (var i = 0; i < sortedFiles.length; i++) {
                 var file = sortedFiles[i];
                 addFileToList(file);
-            }
-            
-            // 如果没有文件，显示提示
-            if (sortedFiles.length === 0) {
-                listElement.innerHTML = '<li>No Markdown/Text files found</li>';
             }
         }
         
@@ -285,20 +237,6 @@
             })(file);
             link.innerHTML = file.name.replace(/\.md$|\.txt$/, '');
             listItem.appendChild(link);
-            
-            // 添加日期信息
-            var commitDate = fileDates[file.name];
-            if (commitDate) {
-                var dateObj = new Date(commitDate);
-                var dateString = dateObj.getFullYear() + '-' + 
-                                ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
-                                ('0' + dateObj.getDate()).slice(-2);
-                var dateSpan = document.createElement('span');
-                dateSpan.className = 'article-date';
-                dateSpan.innerHTML = dateString;
-                listItem.appendChild(dateSpan);
-            }
-            
             listElement.appendChild(listItem);
         }
         
@@ -314,7 +252,7 @@
                     if (xhr.status == 200) {
                         showArticleContent(file, xhr.responseText);
                     } else {
-                        mainArea.innerHTML = '<p>Error loading article content</p>' +
+                        mainArea.innerHTML = '<p class="error-message">Error loading article content</p>' +
                                            '<p>Status: ' + xhr.status + '</p>';
                     }
                 }
