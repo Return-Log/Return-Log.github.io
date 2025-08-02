@@ -1,5 +1,7 @@
 pyinstaller -w --icon=icon.ico --upx-dir=C:\Users\chnlm\OneDrive\文档\code\upx-4.2.4-win64 --name=EducationClock main.py
 
-
+https://github.com/Return-Log/Return-Log.github.io/blob/main/avatar.png
 d9db97a66bbe44b0ab7ab4d68869bcc6
+
+https://s2.loli.net/2025/06/15/bBKPC7ATZ5UFpRf.png
 
