@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html>
 <head>
-    <title>Geek Introduction Page</title>
+    <title>Return-Log's Geek Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
@@ -54,6 +54,11 @@
         .article-list {
             list-style-type: square;
             color: #0f0;
+            padding-left: 20px;
+        }
+        
+        .article-list li {
+            margin-bottom: 10px;
         }
         
         .article-list a {
@@ -101,23 +106,31 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        
+        .loading {
+            color: #0f0;
+        }
+        
+        #articleContent {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="sidebar">
-            <img src="avatar.jpg" alt="Avatar" class="avatar">
+            <img src="avatar.png" alt="Avatar" class="avatar">
             <div class="profile-info">
                 <h2>Geek Profile</h2>
-                <p>Name: Your Name</p>
-                <p>Title: Developer/Engineer</p>
-                <p>Email: your.email@example.com</p>
-                <p>Github: <a href="https://github.com/username" style="color:#0f0;">@username</a></p>
+                <p>Name: Return-Log</p>
+                <p>Title: Developer</p>
+                <p>Github: <a href="https://github.com/Return-Log" style="color:#0f0;">@Return-Log</a></p>
             </div>
             
             <h3>Articles</h3>
             <ul class="article-list" id="articleList">
-                <!-- 文章列表将通过JavaScript动态加载 -->
+                <li class="loading">Loading articles...</li>
             </ul>
             
             <div class="donation">
@@ -129,7 +142,7 @@
         
         <div class="main-content">
             <div id="mainArea">
-                <h1>Welcome to My Geek Page</h1>
+                <h1>Welcome to Return-Log's Geek Page</h1>
                 <p>This is a simple introduction page with a geeky style.</p>
                 <p>Select an article from the left sidebar to read.</p>
             </div>
@@ -137,59 +150,138 @@
     </div>
 
     <script>
-        // 由于HTML 2.0不支持现代JavaScript特性，我们使用基本的JS功能
-        function loadArticleList() {
-            // 模拟文章列表 - 实际使用时需要通过GitHub API获取
-            var articles = [
-                {name: "Introduction to Markdown", file: "texts/intro.md"},
-                {name: "Geek Style Guide", file: "texts/geek-style.md"},
-                {name: "Coding Best Practices", file: "texts/coding-practices.md"}
-            ];
+        // GitHub API配置
+        var GITHUB_USERNAME = "Return-Log";
+        var GITHUB_REPO = "Return-Log.github.io";
+        var TEXTS_PATH = "texts";
+        
+        // 获取文章列表
+        function fetchArticleList() {
+            var apiUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/contents/" + TEXTS_PATH;
             
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", apiUrl, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        var files = JSON.parse(xhr.responseText);
+                        displayArticleList(files);
+                    } else {
+                        document.getElementById('articleList').innerHTML = '<li>Error loading articles</li>';
+                    }
+                }
+            };
+            xhr.send();
+        }
+        
+        // 显示文章列表
+        function displayArticleList(files) {
             var listElement = document.getElementById('articleList');
-            for (var i = 0; i < articles.length; i++) {
-                var listItem = document.createElement('li');
-                var link = document.createElement('a');
-                link.href = '#';
-                link.onclick = (function(articleFile) {
-                    return function() {
-                        loadArticle(articleFile);
-                        return false;
-                    };
-                })(articles[i].file);
-                link.innerHTML = articles[i].name;
-                listItem.appendChild(link);
-                listElement.appendChild(listItem);
+            listElement.innerHTML = '';
+            
+            if (!files || files.length == 0) {
+                listElement.innerHTML = '<li>No articles found</li>';
+                return;
+            }
+            
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+                if (file.name.match(/\.md$/)) {
+                    var listItem = document.createElement('li');
+                    var link = document.createElement('a');
+                    link.href = '#';
+                    link.onclick = (function(file) {
+                        return function() {
+                            loadArticle(file);
+                            return false;
+                        };
+                    })(file);
+                    link.innerHTML = file.name.replace(/\.md$/, '');
+                    listItem.appendChild(link);
+                    listElement.appendChild(listItem);
+                }
+            }
+            
+            if (listElement.childNodes.length == 0) {
+                listElement.innerHTML = '<li>No markdown files found</li>';
             }
         }
         
-        function loadArticle(filePath) {
+        // 加载文章内容
+        function loadArticle(file) {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<p>Loading article...</p>';
+            mainArea.innerHTML = '<p class="loading">Loading article: ' + file.name + '...</p>';
             
-            // 在真实的GitHub Pages环境中，你需要使用XMLHttpRequest或fetch来加载文件
-            // 这里只是一个示例
-            mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
-                                '<div class="article-content">' +
-                                '<h1>Sample Article</h1>' +
-                                '<p>This is where the article content would be displayed.</p>' +
-                                '<p>In a real implementation, this would load the content from: ' + filePath + '</p>' +
-                                '<pre>console.log("Code example");</pre>' +
-                                '</div>';
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", file.download_url, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        displayArticle(file.name, xhr.responseText);
+                    } else {
+                        mainArea.innerHTML = '<p>Error loading article content</p>';
+                    }
+                }
+            };
+            xhr.send();
         }
         
+        // 显示文章内容
+        function displayArticle(title, content) {
+            var mainArea = document.getElementById('mainArea');
+            mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
+                                '<h1>' + title.replace(/\.md$/, '') + '</h1>' +
+                                '<div id="articleContent"></div>';
+            
+            // 简单的Markdown到HTML转换
+            var htmlContent = convertMarkdownToHtml(content);
+            document.getElementById('articleContent').innerHTML = htmlContent;
+        }
+        
+        // 简单的Markdown到HTML转换函数
+        function convertMarkdownToHtml(markdown) {
+            // 处理标题
+            markdown = markdown.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            markdown = markdown.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            markdown = markdown.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            
+            // 处理粗体
+            markdown = markdown.replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>');
+            
+            // 处理斜体
+            markdown = markdown.replace(/\*(.*)\*/gim, '<em>$1</em>');
+            
+            // 处理代码块
+            markdown = markdown.replace(/`(.*?)`/gim, '<code>$1</code>');
+            
+            // 处理代码段
+            markdown = markdown.replace(/([\s\S]*?)/gim, '<pre>$1</pre>');
+
+            // 处理链接
+            markdown = markdown.replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" style="color:#0f0;">$1</a>');
+            
+            // 处理段落
+            markdown = markdown.replace(/\n\n/gim, '</p><p>');
+            markdown = '<p>' + markdown + '</p>';
+            
+            // 处理行内换行
+            markdown = markdown.replace(/\n/gim, '<br>');
+            
+            return markdown;
+        }
+        
+        // 显示主页
         function showHomePage() {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<h1>Welcome to My Geek Page</h1>' +
+            mainArea.innerHTML = '<h1>Welcome to Return-Log\'s Geek Page</h1>' +
                                 '<p>This is a simple introduction page with a geeky style.</p>' +
                                 '<p>Select an article from the left sidebar to read.</p>';
         }
         
         // 页面加载完成后初始化
         window.onload = function() {
-            loadArticleList();
+            fetchArticleList();
         };
     </script>
 </body>
 </html>
-
