@@ -175,6 +175,9 @@
         var GITHUB_REPO = "Return-Log.github.io";
         var TEXTS_PATH = "pages";
         
+        // 存储文件日期信息
+        var fileDates = {};
+        
         // 获取文章列表
         function fetchArticleList() {
             var apiUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/contents/" + TEXTS_PATH;
@@ -185,7 +188,7 @@
                 if (xhr.readyState == 4) {
                     if (xhr.status == 200) {
                         var files = JSON.parse(xhr.responseText);
-                        getCommitDates(files);
+                        processFilesAndGetDates(files);
                     } else {
                         document.getElementById('articleList').innerHTML = '<li>Error loading articles</li>';
                     }
@@ -194,10 +197,8 @@
             xhr.send();
         }
         
-        // 获取所有文件的提交日期
-        function getCommitDates(files) {
-            var fileDates = {};
-            var processedCount = 0;
+        // 处理文件并获取日期
+        function processFilesAndGetDates(files) {
             var validFiles = files.filter(function(file) {
                 return file.name.match(/\.md$|\.txt$/);
             });
@@ -207,23 +208,24 @@
                 return;
             }
             
-            // 为每个文件获取提交日期
+            // 初始化计数器
+            var totalFiles = validFiles.length;
+            var processedFiles = 0;
+            
+            // 逐个获取文件日期
             for (var i = 0; i < validFiles.length; i++) {
-                var file = validFiles[i];
-                getSingleFileCommitDate(file, function(file, commitDate) {
-                    fileDates[file.name] = commitDate;
-                    processedCount++;
-                    
-                    // 当所有文件都处理完后，显示列表
-                    if (processedCount === validFiles.length) {
-                        displayArticleList(validFiles, fileDates);
+                getFileInfo(validFiles[i], function() {
+                    processedFiles++;
+                    // 当所有文件都处理完后显示列表
+                    if (processedFiles === totalFiles) {
+                        displayArticleList(validFiles);
                     }
                 });
             }
         }
         
-        // 获取单个文件的提交日期
-        function getSingleFileCommitDate(file, callback) {
+        // 获取单个文件信息
+        function getFileInfo(file, callback) {
             var commitsUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/commits?path=" + file.path;
             
             var xhr = new XMLHttpRequest();
@@ -233,20 +235,17 @@
                     if (xhr.status == 200) {
                         var commits = JSON.parse(xhr.responseText);
                         if (commits.length > 0) {
-                            callback(file, commits[0].commit.committer.date);
-                        } else {
-                            callback(file, null);
+                            fileDates[file.name] = commits[0].commit.committer.date;
                         }
-                    } else {
-                        callback(file, null);
                     }
+                    callback();
                 }
             };
             xhr.send();
         }
         
         // 显示文章列表
-        function displayArticleList(files, fileDates) {
+        function displayArticleList(files) {
             var listElement = document.getElementById('articleList');
             listElement.innerHTML = '';
             
@@ -260,33 +259,39 @@
             // 显示所有文件
             for (var i = 0; i < sortedFiles.length; i++) {
                 var file = sortedFiles[i];
-                var listItem = document.createElement('li');
-                var link = document.createElement('a');
-                link.href = '#';
-                link.onclick = (function(file) {
-                    return function() {
-                        loadArticle(file);
-                        return false;
-                    };
-                })(file);
-                link.innerHTML = file.name.replace(/\.md$|\.txt$/, '');
-                listItem.appendChild(link);
-                
-                // 添加日期信息
-                var commitDate = fileDates[file.name];
-                if (commitDate) {
-                    var dateObj = new Date(commitDate);
-                    var dateString = dateObj.getFullYear() + '-' + 
-                                    ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
-                                    ('0' + dateObj.getDate()).slice(-2);
-                    var dateSpan = document.createElement('span');
-                    dateSpan.className = 'article-date';
-                    dateSpan.innerHTML = dateString;
-                    listItem.appendChild(dateSpan);
-                }
-                
-                listElement.appendChild(listItem);
+                addFileToList(file);
             }
+        }
+        
+        // 添加单个文件到列表
+        function addFileToList(file) {
+            var listElement = document.getElementById('articleList');
+            var listItem = document.createElement('li');
+            var link = document.createElement('a');
+            link.href = '#';
+            link.onclick = (function(file) {
+                return function() {
+                    loadArticle(file);
+                    return false;
+                };
+            })(file);
+            link.innerHTML = file.name.replace(/\.md$|\.txt$/, '');
+            listItem.appendChild(link);
+            
+            // 添加日期信息
+            var commitDate = fileDates[file.name];
+            if (commitDate) {
+                var dateObj = new Date(commitDate);
+                var dateString = dateObj.getFullYear() + '-' + 
+                                ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
+                                ('0' + dateObj.getDate()).slice(-2);
+                var dateSpan = document.createElement('span');
+                dateSpan.className = 'article-date';
+                dateSpan.innerHTML = dateString;
+                listItem.appendChild(dateSpan);
+            }
+            
+            listElement.appendChild(listItem);
         }
         
         // 加载文章内容
@@ -310,30 +315,17 @@
         
         // 显示带日期的文章内容
         function displayArticleWithDate(file, content) {
-            // 获取文件提交日期
-            var commitsUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/commits?path=" + file.path;
+            var dateInfo = '';
+            var commitDate = fileDates[file.name];
+            if (commitDate) {
+                var dateObj = new Date(commitDate);
+                var dateString = dateObj.getFullYear() + '-' + 
+                                ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
+                                ('0' + dateObj.getDate()).slice(-2);
+                dateInfo = '<div class="article-meta">Last updated: ' + dateString + '</div>';
+            }
             
-            var xhr = new XMLHttpRequest();
-            xhr.open("GET", commitsUrl, true);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState == 4) {
-                    var dateInfo = '';
-                    if (xhr.status == 200) {
-                        var commits = JSON.parse(xhr.responseText);
-                        if (commits.length > 0) {
-                            var lastCommitDate = commits[0].commit.committer.date;
-                            var dateObj = new Date(lastCommitDate);
-                            var dateString = dateObj.getFullYear() + '-' + 
-                                            ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
-                                            ('0' + dateObj.getDate()).slice(-2);
-                            dateInfo = '<div class="article-meta">Last updated: ' + dateString + '</div>';
-                        }
-                    }
-                    
-                    showArticleContent(file, content, dateInfo);
-                }
-            };
-            xhr.send();
+            showArticleContent(file, content, dateInfo);
         }
         
         // 显示文章内容
