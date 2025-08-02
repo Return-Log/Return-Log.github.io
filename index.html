@@ -120,7 +120,7 @@
         <div class="sidebar">
             <img src="avatar.png" alt="Avatar" class="avatar">
             <div class="profile-info">
-                <h2>Geek Profile</h2>
+                <h2>Profile</h2>
                 <p>Name: Log</p>
                 <p>Github: <a href="https://github.com/Return-Log" style="color:#0f0;">@Return-Log</a></p>
             </div>
@@ -229,7 +229,7 @@
                                 '<h1>' + title.replace(/\.md$|\.txt$/, '') + '</h1>' +
                                 '<div id="articleContent"></div>';
             
-            // 解析内容中的链接和图片
+             // 解析内容中的链接和图片
             var processedContent = parseContent(content);
             document.getElementById('articleContent').innerHTML = processedContent;
         }
@@ -238,20 +238,21 @@
         function parseContent(content) {
             var result = content;
             
-            // 解析URL链接 (http/https)
-            result = result.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" class="auto-link" target="_blank">$1</a>');
+            // 先处理Markdown图片语法 ![alt](url)
+            result = result.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+\.(?:jpg|jpeg|png|gif|bmp|webp))\)/gi,
+                '<img src="$2" class="auto-image" alt="$1">');
             
-            // 解析图片链接并直接显示图片
-            result = result.replace(/(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|bmp|webp))/gi, 
+            // 处理相对路径的Markdown图片
+            result = result.replace(/!\[([^\]]*)\]\(([^)]+\.(?:jpg|jpeg|png|gif|bmp|webp))\)/gi,
+                '<img src="https://raw.githubusercontent.com/' + GITHUB_USERNAME + '/' + GITHUB_REPO + '/main/$2" class="auto-image" alt="$1">');
+            
+            // 处理直接的图片URL，但避免处理已经处理过的Markdown图片
+            result = result.replace(/(?<!src="|href=")(https?:\/\/[^\s]+\.(?:jpg|jpeg|png|gif|bmp|webp))/gi, 
                 '<img src="$1" class="auto-image" alt="Image" onerror="this.style.display=\'none\';">');
             
-            // 处理相对路径图片 (假设在GitHub仓库中)
-            result = result.replace(/(!\[([^\]]*)\]\(([^)]+\.(?:jpg|jpeg|png|gif|bmp|webp))\))/gi,
-                '<img src="https://raw.githubusercontent.com/' + GITHUB_USERNAME + '/' + GITHUB_REPO + '/main/$3" class="auto-image" alt="$2">');
-            
-            // 处理Markdown图片语法
-            result = result.replace(/(!\[([^\]]*)\]\((https?:\/\/[^)]+\.(?:jpg|jpeg|png|gif|bmp|webp))\))/gi,
-                '<img src="$3" class="auto-image" alt="$2">');
+            // 处理普通链接，避免处理图片的src属性中的URL
+            result = result.replace(/(?<!src="|href=")(https?:\/\/[^\s<>]+)/g, 
+                '<a href="$1" class="auto-link" target="_blank">$1</a>');
             
             return result;
         }
@@ -259,7 +260,8 @@
         // 显示主页
         function showHomePage() {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<h1>Welcome to Log\'s Page</h1>' +
+            mainArea.innerHTML = '<h1>Welcome to Return-Log\'s Geek Page</h1>' +
+                                '<p>This is a simple introduction page with a geeky style.</p>' +
                                 '<p>Select an article from the left sidebar to read.</p>';
         }
         
