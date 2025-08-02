@@ -52,10 +52,17 @@
             border-bottom: 1px solid #0f0;
         }
         
+        .article-list-container {
+            height: calc(100vh - 350px);
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+        
         .article-list {
             list-style-type: square;
             color: #0f0;
             padding-left: 20px;
+            margin: 0;
         }
         
         .article-list li {
@@ -71,8 +78,15 @@
             text-decoration: underline;
         }
         
+        .article-date {
+            font-size: 0.8em;
+            color: #0a0;
+            display: block;
+            margin-top: 3px;
+        }
+        
         .donation {
-            margin-top: 40px;
+            margin-top: auto;
             text-align: center;
         }
         
@@ -113,6 +127,14 @@
             border: 1px solid #0f0;
             margin: 10px 0;
         }
+        
+        .article-meta {
+            font-size: 0.9em;
+            color: #0a0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #0f0;
+            padding-bottom: 10px;
+        }
     </style>
 </head>
 <body>
@@ -126,9 +148,11 @@
             </div>
             
             <h3>Articles</h3>
-            <ul class="article-list" id="articleList">
-                <li class="loading">Loading articles...</li>
-            </ul>
+            <div class="article-list-container">
+                <ul class="article-list" id="articleList">
+                    <li class="loading">Loading articles...</li>
+                </ul>
+            </div>
             
             <div class="donation">
                 <h3>Donate</h3>
@@ -180,25 +204,101 @@
                 return;
             }
             
+            // 获取每个文件的提交历史来确定最后修改日期
+            var processedFiles = 0;
+            var fileDates = {};
+            
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
                 if (file.name.match(/\.md$|\.txt$/)) {
-                    var listItem = document.createElement('li');
-                    var link = document.createElement('a');
-                    link.href = '#';
-                    link.onclick = (function(file) {
-                        return function() {
-                            loadArticle(file);
-                            return false;
-                        };
-                    })(file);
-                    link.innerHTML = file.name.replace(/\.md$|\.txt$/, '');
-                    listItem.appendChild(link);
-                    listElement.appendChild(listItem);
+                    // 获取文件的提交历史
+                    getFileCommitDate(file, function(file, commitDate) {
+                        fileDates[file.name] = commitDate;
+                        processedFiles++;
+                        
+                        // 当所有文件都处理完后，排序并显示
+                        if (processedFiles == Object.keys(fileDates).length) {
+                            renderArticleList(files, fileDates);
+                        }
+                    });
                 }
             }
             
-            if (listElement.childNodes.length == 0) {
+            // 如果没有有效的文件，显示提示
+            if (processedFiles === 0) {
+                listElement.innerHTML = '<li>No Markdown/Text files found</li>';
+            }
+        }
+        
+        // 获取文件最后提交日期
+        function getFileCommitDate(file, callback) {
+            var commitsUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/commits?path=" + file.path;
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", commitsUrl, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        var commits = JSON.parse(xhr.responseText);
+                        if (commits.length > 0) {
+                            var lastCommitDate = commits[0].commit.committer.date;
+                            callback(file, lastCommitDate);
+                        } else {
+                            callback(file, null);
+                        }
+                    } else {
+                        callback(file, null);
+                    }
+                }
+            };
+            xhr.send();
+        }
+        
+        // 渲染文章列表
+        function renderArticleList(files, fileDates) {
+            var listElement = document.getElementById('articleList');
+            listElement.innerHTML = '';
+            
+            // 按日期排序文件
+            var sortedFiles = files.filter(function(file) {
+                return file.name.match(/\.md$|\.txt$/);
+            }).sort(function(a, b) {
+                var dateA = fileDates[a.name] || '';
+                var dateB = fileDates[b.name] || '';
+                return dateB.localeCompare(dateA); // 最新的在前
+            });
+            
+            for (var i = 0; i < sortedFiles.length; i++) {
+                var file = sortedFiles[i];
+                var listItem = document.createElement('li');
+                var link = document.createElement('a');
+                link.href = '#';
+                link.onclick = (function(file) {
+                    return function() {
+                        loadArticle(file);
+                        return false;
+                    };
+                })(file);
+                link.innerHTML = file.name.replace(/\.md$|\.txt$/, '');
+                listItem.appendChild(link);
+                
+                // 添加日期信息
+                var commitDate = fileDates[file.name];
+                if (commitDate) {
+                    var dateObj = new Date(commitDate);
+                    var dateString = dateObj.getFullYear() + '-' + 
+                                    ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
+                                    ('0' + dateObj.getDate()).slice(-2);
+                    var dateSpan = document.createElement('span');
+                    dateSpan.className = 'article-date';
+                    dateSpan.innerHTML = dateString;
+                    listItem.appendChild(dateSpan);
+                }
+                
+                listElement.appendChild(listItem);
+            }
+            
+            if (sortedFiles.length == 0) {
                 listElement.innerHTML = '<li>No Markdown/Text files found</li>';
             }
         }
@@ -213,7 +313,7 @@
             xhr.onreadystatechange = function() {
                 if (xhr.readyState == 4) {
                     if (xhr.status == 200) {
-                        displayArticle(file.name, xhr.responseText);
+                        displayArticle(file, xhr.responseText);
                     } else {
                         mainArea.innerHTML = '<p>Error loading article content</p>';
                     }
@@ -223,15 +323,40 @@
         }
         
         // 显示文章内容
-        function displayArticle(title, content) {
+        function displayArticle(file, content) {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
-                                '<h1>' + title.replace(/\.md$|\.txt$/, '') + '</h1>' +
-                                '<div id="articleContent"></div>';
             
-             // 解析内容中的链接和图片
-            var processedContent = parseContent(content);
-            document.getElementById('articleContent').innerHTML = processedContent;
+            // 获取文件提交日期
+            var commitsUrl = "https://api.github.com/repos/" + GITHUB_USERNAME + "/" + GITHUB_REPO + "/commits?path=" + file.path;
+            
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", commitsUrl, true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    var dateInfo = '';
+                    if (xhr.status == 200) {
+                        var commits = JSON.parse(xhr.responseText);
+                        if (commits.length > 0) {
+                            var lastCommitDate = commits[0].commit.committer.date;
+                            var dateObj = new Date(lastCommitDate);
+                            var dateString = dateObj.getFullYear() + '-' + 
+                                            ('0' + (dateObj.getMonth() + 1)).slice(-2) + '-' + 
+                                            ('0' + dateObj.getDate()).slice(-2);
+                            dateInfo = '<div class="article-meta">Last updated: ' + dateString + '</div>';
+                        }
+                    }
+                    
+                    mainArea.innerHTML = '<a href="#" class="back-link" onclick="showHomePage(); return false;">&larr; Back to Home</a>' +
+                                        '<h1>' + file.name.replace(/\.md$|\.txt$/, '') + '</h1>' +
+                                        dateInfo +
+                                        '<div id="articleContent"></div>';
+                    
+                    // 解析内容中的链接和图片
+                    var processedContent = parseContent(content);
+                    document.getElementById('articleContent').innerHTML = processedContent;
+                }
+            };
+            xhr.send();
         }
         
         // 解析内容中的链接和图片
@@ -260,8 +385,7 @@
         // 显示主页
         function showHomePage() {
             var mainArea = document.getElementById('mainArea');
-            mainArea.innerHTML = '<h1>Welcome to Return-Log\'s Geek Page</h1>' +
-                                '<p>This is a simple introduction page with a geeky style.</p>' +
+            mainArea.innerHTML = '<h1>Welcome to Log\'s Page</h1>' +
                                 '<p>Select an article from the left sidebar to read.</p>';
         }
         
