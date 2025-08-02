@@ -3,6 +3,7 @@
 <head>
     <title>Return-Log's Geek Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <style>
         body {
             font-family: 'Courier New', monospace;
@@ -140,6 +141,14 @@
         #articleContent {
             font-family: 'Courier New', monospace;
         }
+        
+        .mermaid {
+            background-color: #111;
+            padding: 10px;
+            border: 1px solid #0f0;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
@@ -269,7 +278,6 @@
             
             // 转换代码块 (code)
             html = html.replace(/([\s\S]*?)/g, '<pre><code>$1</code></pre>');
-
             // 转换行内代码 (`code`)
             html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
             
@@ -297,15 +305,11 @@
             
             // 转换无序列表
             html = html.replace(/^\* (.*)$/gm, '<li>$1</li>');
-            html = html.replace(/<li>(.*)<\/li>(?:\n<li>(.*)<\/li>)*/g, function(match) {
-                return '<ul>' + match + '</ul>';
-            });
+            html = html.replace(/(<li>.*<\/li>\s*)+/g, '<ul>$&</ul>');
             
             // 转换有序列表
             html = html.replace(/^\d+\. (.*)$/gm, '<li>$1</li>');
-            html = html.replace(/<li>(.*)<\/li>(?:\n<li>(.*)<\/li>)*/g, function(match) {
-                return '<ol>' + match + '</ol>';
-            });
+            html = html.replace(/(<li>.*<\/li>\s*)+/g, '<ol>$&</ol>');
             
             // 转换链接
             html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color:#0f0;">$1</a>');
@@ -316,6 +320,8 @@
             // 转换水平线
             html = html.replace(/^---$/gm, '<hr>');
             
+            // 处理Mermaid图表
+            html = html.replace(/mermaid([\s\S]*?)/g, '<div class="mermaid">$1</div>');
             // 转换段落
             html = html.replace(/^\s*$(?:\n)*([^<\n][\s\S]*?)(?:\n\s*$)+/gm, '<p>$1</p>');
             
