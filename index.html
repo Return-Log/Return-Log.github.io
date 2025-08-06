@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
 <html>
 <head>
-    <title>Return-Log's Page</title>
+    <title>Return-Log's Geek Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <style>
@@ -11,57 +11,44 @@
             padding: 0;
             background-color: #000;
             color: #0f0;
-            overflow-x: hidden;
         }
         
         .container {
             display: flex;
-            width: 100%;
-            height: 100vh;
+            flex-direction: column;
+            min-height: 100vh;
         }
         
         .sidebar {
-            width: 25%;
-            min-width: 250px;
             padding: 20px;
             background-color: #111;
-            border-right: 1px solid #0f0;
-            vertical-align: top;
-            transition: transform 0.3s ease;
-            position: relative;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
+            border-bottom: 1px solid #0f0;
         }
         
         .main-content {
-            flex: 1;
             padding: 20px;
-            vertical-align: top;
-            position: relative;
-            overflow-y: auto;
+            flex-grow: 1;
         }
         
         .avatar {
-            width: 150px;
-            height: 150px;
+            width: 100px; /* 移动端缩小头像 */
+            height: 100px;
             border: 2px solid #0f0;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         
         .profile-info {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
         
         .profile-info h2 {
             color: #0f0;
             border-bottom: 1px solid #0f0;
+            font-size: 1.5em; /* 移动端字体稍小 */
         }
         
         .article-list-container {
-            flex: 1;
-            min-height: 200px;
-            max-height: calc(100vh - 400px);
+            max-height: 300px; /* 限制文章列表高度 */
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -75,11 +62,15 @@
         
         .article-list li {
             margin-bottom: 10px;
+            line-height: 1.4;
         }
         
         .article-list a {
             color: #0f0;
             text-decoration: none;
+            font-size: 0.9em; /* 移动端字体稍小 */
+            padding: 5px; /* 增大触摸区域 */
+            display: inline-block;
         }
         
         .article-list a:hover {
@@ -87,7 +78,7 @@
         }
         
         .article-date {
-            font-size: 0.8em;
+            font-size: 0.7em;
             color: #0a0;
             display: block;
             margin-top: 3px;
@@ -95,26 +86,22 @@
         
         .donation {
             text-align: center;
-            padding-top: 20px;
-            border-top: 1px solid #0f0;
-        }
-        
-        .donation h3 {
-            margin-top: 0;
+            margin-top: 20px;
         }
         
         .donation img {
-            width: 150px;
+            width: 150px; /* 移动端缩小捐款二维码 */
             height: 150px;
             border: 1px solid #0f0;
-            max-width: 100%;
         }
         
         .back-link {
             display: block;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #0f0;
             text-decoration: none;
+            font-size: 0.9em;
+            padding: 5px; /* 增大触摸区域 */
         }
         
         .back-link:hover {
@@ -129,6 +116,7 @@
             white-space: pre-wrap;
             font-family: 'Courier New', monospace;
             line-height: 1.6;
+            font-size: 0.9em; /* 移动端字体稍小 */
         }
         
         .auto-link {
@@ -138,6 +126,7 @@
         
         .auto-image {
             max-width: 100%;
+            height: auto;
             border: 1px solid #0f0;
             margin: 10px 0;
         }
@@ -146,115 +135,53 @@
             color: #f00;
         }
         
-        /* 侧边栏切换按钮 */
-        .sidebar-toggle {
-            position: absolute;
-            top: 10px;
-            right: -30px;
-            background: #111;
-            color: #0f0;
-            border: 1px solid #0f0;
-            border-left: none;
-            padding: 5px 5px;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
-        
-        /* 收起状态 */
-        .sidebar.collapsed {
-            transform: translateX(-100%);
-        }
-        
-        .sidebar.collapsed .sidebar-toggle {
-            right: -30px;
-            border-left: 1px solid #0f0;
-            border-right: none;
-        }
-        
-        .sidebar.collapsed .sidebar-toggle::before {
-            content: "→";
-        }
-        
-        .sidebar .sidebar-toggle::before {
-            content: "←";
-        }
-        
-        /* 移动端适配 - 使用侧滑菜单 */
-        @media (max-width: 768px) {
+        /* 桌面端样式 */
+        @media (min-width: 768px) {
             .container {
-                display: flex;
-                height: 100vh;
-                position: relative;
+                flex-direction: row;
             }
             
             .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                height: 100vh;
-                z-index: 1000;
-                transform: translateX(0);
-                width: 80%;
-                max-width: 300px;
-            }
-            
-            .sidebar.collapsed {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar .sidebar-toggle {
-                right: -30px;
-                border-left: 1px solid #0f0;
-                border-right: none;
-            }
-            
-            .sidebar.collapsed .sidebar-toggle {
-                right: -30px;
-                border-left: 1px solid #0f0;
-                border-right: none;
-            }
-            
-            .sidebar .sidebar-toggle::before {
-                content: "←";
-            }
-            
-            .sidebar.collapsed .sidebar-toggle::before {
-                content: "→";
+                width: 25%;
+                border-bottom: none;
+                border-right: 1px solid #0f0;
             }
             
             .main-content {
-                flex: 1;
-                margin-left: 0;
-                width: 100%;
-                padding: 20px;
+                width: 75%;
             }
             
-            .overlay {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                z-index: 999;
+            .avatar {
+                width: 150px;
+                height: 150px;
             }
             
-            .sidebar.active ~ .overlay {
-                display: block;
+            .profile-info h2 {
+                font-size: 1.8em;
+            }
+            
+            .article-list-container {
+                height: calc(100vh - 350px);
+            }
+            
+            .article-list a {
+                font-size: 1em;
+            }
+            
+            .donation img {
+                width: 200px;
+                height: 200px;
+            }
+            
+            #articleContent {
+                font-size: 1em;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="sidebar" id="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()"></button>
+        <div class="sidebar">
             <img src="avatar.png" alt="Avatar" class="avatar">
             <div class="profile-info">
                 <h2>Profile</h2>
@@ -276,9 +203,7 @@
             </div>
         </div>
         
-        <div class="overlay" onclick="toggleSidebar()"></div>
-        
-        <div class="main-content" id="mainContent">
+        <div class="main-content">
             <div id="mainArea">
                 <h1>Welcome to Log's Page</h1>
                 <p>Select an article from the left sidebar to read.</p>
@@ -353,10 +278,6 @@
             link.onclick = (function(file) {
                 return function() {
                     loadArticle(file);
-                    // 在移动端点击文章后隐藏侧边栏
-                    if (window.innerWidth <= 768) {
-                        document.getElementById('sidebar').classList.remove('active');
-                    }
                     return false;
                 };
             })(file);
@@ -427,32 +348,10 @@
                                 '<p>Select an article from the left sidebar to read.</p>';
         }
         
-        // 切换侧边栏显示状态
-        function toggleSidebar() {
-            var sidebar = document.getElementById('sidebar');
-            
-            // 桌面端
-            if (window.innerWidth > 768) {
-                sidebar.classList.toggle('collapsed');
-            } 
-            // 移动端
-            else {
-                sidebar.classList.toggle('active');
-            }
-        }
-        
         // 页面加载完成后初始化
         window.onload = function() {
             fetchArticleList();
         };
-        
-        // 监听窗口大小变化
-        window.addEventListener('resize', function() {
-            var sidebar = document.getElementById('sidebar');
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('active');
-            }
-        });
     </script>
 </body>
 </html>
