@@ -96,7 +96,6 @@
             text-align: center;
             padding-top: 20px;
             border-top: 1px solid #0f0;
-            flex-shrink: 0;
         }
         
         .donation h3 {
@@ -193,36 +192,32 @@
             
             .sidebar {
                 width: 100%;
-                height: 100vh;
-                position: fixed;
-                top: 0;
-                left: 0;
-                z-index: 1000;
-                transform: translateX(-100%);
+                min-width: 100%;
+                position: relative;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #0f0;
+                transform: none;
             }
             
-            .sidebar.active {
-                transform: translateX(0);
+            .sidebar.collapsed {
+                transform: none;
             }
             
             .sidebar .sidebar-toggle {
-                right: -30px;
-                border-left: 1px solid #0f0;
-                border-right: none;
+                right: 10px;
+                border: 1px solid #0f0;
+                top: 10px;
             }
             
-            .sidebar .sidebar-toggle::before {
-                content: "→";
-            }
-            
-            .sidebar.active .sidebar-toggle::before {
-                content: "←";
+            .sidebar.collapsed .sidebar-toggle {
+                right: 10px;
+                border: 1px solid #0f0;
             }
             
             .main-content {
                 width: 100%;
                 padding: 20px;
-                margin-top: 40px;
             }
             
             .article-list-container {
@@ -336,10 +331,6 @@
             link.onclick = (function(file) {
                 return function() {
                     loadArticle(file);
-                    // 在移动端点击文章后隐藏侧边栏
-                    if (window.innerWidth <= 768) {
-                        document.getElementById('sidebar').classList.remove('active');
-                    }
                     return false;
                 };
             })(file);
@@ -413,29 +404,13 @@
         // 切换侧边栏显示状态
         function toggleSidebar() {
             var sidebar = document.getElementById('sidebar');
-            
-            // 桌面端
-            if (window.innerWidth > 768) {
-                sidebar.classList.toggle('collapsed');
-            } 
-            // 移动端
-            else {
-                sidebar.classList.toggle('active');
-            }
+            sidebar.classList.toggle('collapsed');
         }
         
         // 页面加载完成后初始化
         window.onload = function() {
             fetchArticleList();
         };
-        
-        // 监听窗口大小变化
-        window.addEventListener('resize', function() {
-            var sidebar = document.getElementById('sidebar');
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('active');
-            }
-        });
     </script>
 </body>
 </html>
