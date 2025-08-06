@@ -30,6 +30,8 @@
             transition: transform 0.3s ease;
             position: relative;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
         
         .main-content {
@@ -56,7 +58,7 @@
         }
         
         .article-list-container {
-            height: calc(100vh - 350px);
+            flex: 1;
             overflow-y: auto;
             margin-bottom: 20px;
         }
@@ -91,6 +93,12 @@
         .donation {
             margin-top: auto;
             text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #0f0;
+        }
+        
+        .donation h3 {
+            margin-top: 0;
         }
         
         .donation img {
@@ -253,8 +261,8 @@
                 <p>Github: <a href="https://github.com/Return-Log" style="color:#0f0;">@Return-Log</a></p>
             </div>
             
-            <h3>Articles</h3>
             <div class="article-list-container">
+                <h3>Articles</h3>
                 <ul class="article-list" id="articleList">
                     <li class="loading">Loading articles...</li>
                 </ul>
