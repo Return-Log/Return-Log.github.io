@@ -27,6 +27,7 @@
             background-color: #111;
             border-right: 1px solid #0f0;
             vertical-align: top;
+            transition: all 0.3s ease;
         }
         
         .main-content {
@@ -34,6 +35,7 @@
             width: 75%;
             padding: 20px;
             vertical-align: top;
+            transition: all 0.3s ease;
         }
         
         .avatar {
@@ -132,7 +134,47 @@
             color: #f00;
         }
         
-        /* 移动端优化 */
+        /* 侧边栏收缩按钮 */
+        .sidebar-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 5px 10px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        
+        /* 收缩状态 */
+        .sidebar.collapsed {
+            width: 50px;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed .avatar,
+        .sidebar.collapsed .profile-info h2,
+        .sidebar.collapsed .profile-info p,
+        .sidebar.collapsed h3,
+        .sidebar.collapsed .article-list-container,
+        .sidebar.collapsed .donation h3,
+        .sidebar.collapsed .donation p {
+            display: none;
+        }
+        
+        .sidebar.collapsed .donation img {
+            width: 30px;
+            height: 30px;
+            border: none;
+        }
+        
+        .main-content.expanded {
+            width: calc(100% - 50px);
+        }
+        
+        /* 移动端适配 */
         @media (max-width: 768px) {
             .container {
                 display: block;
@@ -148,11 +190,24 @@
             .sidebar {
                 border-right: none;
                 border-bottom: 1px solid #0f0;
+                height: auto;
+                max-height: 50vh;
+            }
+            
+            .sidebar.collapsed {
+                width: 100%;
+                height: 50px;
+                padding: 5px;
+                max-height: 50px;
+            }
+            
+            .main-content.expanded {
+                width: 100%;
             }
             
             .article-list-container {
                 height: auto;
-                max-height: 300px;
+                max-height: 200px;
             }
             
             .avatar {
@@ -165,67 +220,12 @@
                 height: 150px;
             }
         }
-        
-        @media (max-width: 480px) {
-            .sidebar, .main-content {
-                padding: 5px;
-            }
-            
-            .avatar {
-                width: 80px;
-                height: 80px;
-            }
-            
-            .profile-info h2, h1, h3 {
-                font-size: 1.2em;
-            }
-            
-            p {
-                font-size: 0.9em;
-            }
-            
-            .article-list {
-                padding-left: 15px;
-            }
-            
-            .donation img {
-                width: 120px;
-                height: 120px;
-            }
-        }
-        
-        /* 移动端菜单切换按钮 */
-        .menu-toggle {
-            display: none;
-            background: #111;
-            color: #0f0;
-            border: 1px solid #0f0;
-            padding: 10px;
-            cursor: pointer;
-            margin-bottom: 10px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        @media (max-width: 768px) {
-            .menu-toggle {
-                display: block;
-            }
-            
-            .sidebar {
-                display: none;
-            }
-            
-            .sidebar.active {
-                display: block;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="menu-toggle" onclick="toggleMenu()">☰ Menu</div>
         <div class="sidebar" id="sidebar">
+            <button class="sidebar-toggle" onclick="toggleSidebar()">←</button>
             <img src="avatar.png" alt="Avatar" class="avatar">
             <div class="profile-info">
                 <h2>Profile</h2>
@@ -247,7 +247,7 @@
             </div>
         </div>
         
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
             <div id="mainArea">
                 <h1>Welcome to Log's Page</h1>
                 <p>Select an article from the left sidebar to read.</p>
@@ -322,10 +322,6 @@
             link.onclick = (function(file) {
                 return function() {
                     loadArticle(file);
-                    // 移动端自动隐藏菜单
-                    if (window.innerWidth <= 768) {
-                        document.getElementById('sidebar').classList.remove('active');
-                    }
                     return false;
                 };
             })(file);
@@ -396,27 +392,27 @@
                                 '<p>Select an article from the left sidebar to read.</p>';
         }
         
-        // 移动端菜单切换
-        function toggleMenu() {
+        // 切换侧边栏收缩状态
+        function toggleSidebar() {
             var sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('active');
+            var mainContent = document.getElementById('mainContent');
+            var toggleButton = sidebar.querySelector('.sidebar-toggle');
+            
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('expanded');
+            
+            // 更新按钮文本
+            if (sidebar.classList.contains('collapsed')) {
+                toggleButton.innerHTML = '→';
+            } else {
+                toggleButton.innerHTML = '←';
+            }
         }
         
         // 页面加载完成后初始化
         window.onload = function() {
             fetchArticleList();
         };
-        
-        // 窗口大小改变时的处理
-        window.addEventListener('resize', function() {
-            var sidebar = document.getElementById('sidebar');
-            if (window.innerWidth > 768) {
-                sidebar.classList.remove('active');
-                sidebar.style.display = 'table-cell';
-            } else {
-                sidebar.style.display = 'none';
-            }
-        });
     </script>
 </body>
 </html>
