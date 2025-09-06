@@ -3,19 +3,19 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <url>
-    <loc>https://your_domain.com/</loc>
+    <loc>https://blog.returnsoft.top/</loc>
     <lastmod>2025-09-06T12:29:55+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://your_domain.com/posts/</loc>
+    <loc>https://blog.returnsoft.top/posts/</loc>
     <lastmod>2025-09-06T12:29:55+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://your_domain.com/posts/%E5%87%8F%E8%82%A5%E6%97%A5%E8%AE%B0/</loc>
+    <loc>https://blog.returnsoft.top/posts/%E5%87%8F%E8%82%A5%E6%97%A5%E8%AE%B0/</loc>
     <lastmod>2025-09-06T12:29:55+08:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>

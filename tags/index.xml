@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Tags on Log&#39;s Blog</title>
-    <link>https://your_domain.com/tags/</link>
+    <link>https://blog.returnsoft.top/tags/</link>
     <description>Recent content in Tags on Log&#39;s Blog</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
     <managingEditor>returnlog@outlook.com (Log)</managingEditor>
     <webMaster>returnlog@outlook.com (Log)</webMaster>
     <copyright>© 2024 - 2025 Log All Rights Reserved.</copyright>
-    <atom:link href="https://your_domain.com/tags/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://blog.returnsoft.top/tags/index.xml" rel="self" type="application/rss+xml" />
     
   </channel>
 </rss>
